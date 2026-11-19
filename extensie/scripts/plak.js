@@ -8,12 +8,12 @@
     if (!el) {
       el = document.createElement('div');
       el.id = 'bbm-b7';
-      el.style.cssText = 'position:fixed;top:20px;right:20px;z-index:2147483647;background:#fff;border:2px solid #1f6feb;border-radius:8px;padding:16px 18px;font:14px/1.45 Arial,sans-serif;color:#111;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:440px';
+      el.style.cssText = 'position:fixed;top:20px;right:20px;z-index:2147483647;background:#fff;border:2px solid #1d1d1b;border-top:5px solid #e30613;border-radius:8px;padding:16px 18px;font:14px/1.45 Arial,sans-serif;color:#111;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:440px';
       document.body.appendChild(el);
     }
     const st = 'padding:8px 12px;margin:8px 6px 0 0;border:0;border-radius:5px;cursor:pointer;font-weight:bold;color:#fff;background:';
     const k = knoppen || [['sluiten', null, '#888']];
-    el.innerHTML = html + '<div>' + k.map((b, i) => '<button data-i="' + i + '" style="' + st + (b[2] || '#1f6feb') + '">' + b[0] + '</button>').join('') + '</div>';
+    el.innerHTML = html + '<div>' + k.map((b, i) => '<button data-i="' + i + '" style="' + st + (b[2] || '#1d1d1b') + '">' + b[0] + '</button>').join('') + '</div>';
     el.querySelectorAll('button').forEach((b) => b.onclick = () => { const v = k[b.dataset.i][1]; if (v === null) el.remove(); res(v); });
   });
   const melding = (html) => { box(html, []); };
@@ -71,7 +71,7 @@
       const qm = C.$data.quotation, d = qm.document;
       if (typeof data.btwVerlegd !== 'boolean' && !d.contact && !window.__bbmModus) {
         const door = await box('<b>Kies eerst het contact</b><br>Het BTW-tarief hangt af van de klant (BTW verlegd of 21%). Bouw7 past het tarief van bestaande regels niet aan als je het contact later kiest.',
-          [['Toch plakken met 21%', 'door', '#888'], ['Ik kies eerst het contact', null, '#1f6feb']]);
+          [['Toch plakken met 21%', 'door', '#888'], ['Ik kies eerst het contact', null, '#1d1d1b']]);
         if (!door) return;
       }
       const { verlegd, bron } = bepaalVerlegd(d.contact);
@@ -84,8 +84,8 @@
       const kop = samenvatting('Plak calculatie in nieuwe offerte', tarief, bron);
       let modus = window.__bbmModus;
       if (!modus) modus = nBestaand
-        ? await box(kop + '<div style="margin-top:8px">Het formulier heeft al <b>' + nBestaand + '</b> regel(s).</div>', [['Vervangen', 'vervang', '#c0392b'], ['Toevoegen', 'voeg', '#1f6feb'], ['Annuleren', null, '#888']])
-        : await box(kop, [['Plakken', 'vervang', '#1f6feb'], ['Annuleren', null, '#888']]);
+        ? await box(kop + '<div style="margin-top:8px">Het formulier heeft al <b>' + nBestaand + '</b> regel(s).</div>', [['Vervangen', 'vervang', '#e30613'], ['Toevoegen', 'voeg', '#1d1d1b'], ['Annuleren', null, '#888']])
+        : await box(kop, [['Plakken', 'vervang', '#1d1d1b'], ['Annuleren', null, '#888']]);
       if (!modus) return;
 
       const kloon = (o) => JSON.parse(JSON.stringify(o));
@@ -133,9 +133,9 @@
     let modus = window.__bbmModus;
     if (modus) {} else if (bestaand) {
       modus = await box(kop + '<div style="margin-top:8px">De offerte heeft al <b>' + bestaand + '</b> regel(s).</div>', [
-        ['Vervangen', 'vervang', '#c0392b'], ['Toevoegen', 'voeg', '#1f6feb'], ['Annuleren', null, '#888']]);
+        ['Vervangen', 'vervang', '#e30613'], ['Toevoegen', 'voeg', '#1d1d1b'], ['Annuleren', null, '#888']]);
     } else {
-      modus = await box(kop, [['Plakken', 'voeg', '#1f6feb'], ['Annuleren', null, '#888']]);
+      modus = await box(kop, [['Plakken', 'voeg', '#1d1d1b'], ['Annuleren', null, '#888']]);
     }
     if (!modus) return;
 

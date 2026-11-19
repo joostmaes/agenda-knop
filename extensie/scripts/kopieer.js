@@ -30,7 +30,7 @@
     if (!el) {
       el = D.createElement('div');
       el.id = 'bbm-b7';
-      el.style.cssText = 'position:fixed;top:20px;right:20px;z-index:2147483647;background:#fff;border:2px solid #1f6feb;border-radius:8px;padding:16px 18px;font:14px/1.45 Arial,sans-serif;color:#111;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:420px';
+      el.style.cssText = 'position:fixed;top:20px;right:20px;z-index:2147483647;background:#fff;border:2px solid #1d1d1b;border-top:5px solid #e30613;border-radius:8px;padding:16px 18px;font:14px/1.45 Arial,sans-serif;color:#111;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:420px';
       D.body.appendChild(el);
     }
     el.innerHTML = html + '<div style="text-align:right;margin-top:10px"><a href="#" id="bbm-x" style="color:#666;font-size:12px">sluiten</a></div>';
@@ -40,8 +40,8 @@
   const kies = () => new Promise((res) => {
     const btn = 'padding:8px 12px;margin:4px 6px 0 0;border:0;border-radius:5px;cursor:pointer;font-weight:bold;color:#fff';
     const el = box('<b>Kopieer calculatie naar Bouw7</b><br>Welke variant?<br>' +
-      '<button id="bbm-c" style="' + btn + ';background:#6f42c1">Complete begroting</button>' +
-      '<button id="bbm-o" style="' + btn + ';background:#1f6feb">Open begroting</button>' +
+      '<button id="bbm-c" style="' + btn + ';background:#1d1d1b">Complete begroting</button>' +
+      '<button id="bbm-o" style="' + btn + ';background:#1d1d1b">Open begroting</button>' +
       '<div style="font-size:12px;color:#555;margin-top:8px">Complete = regelprijzen excl. opslagen. Open = opslagen verwerkt in de regelprijzen.</div>');
     el.querySelector('#bbm-c').onclick = () => res('complete');
     el.querySelector('#bbm-o').onclick = () => res('open');
@@ -136,7 +136,7 @@
     if (!gekopieerd) {
       // Klembord vraagt een verse klik als het ophalen lang duurde
       const el = box('<b>Klaar met ophalen</b><br>' + hoofdstukken.length + ' groepen, ' + n + ' regels.<br>' +
-        '<button id="bbm-k" style="padding:8px 12px;margin-top:8px;border:0;border-radius:5px;cursor:pointer;font-weight:bold;color:#fff;background:#1f6feb">Kopieer naar klembord</button>');
+        '<button id="bbm-k" style="padding:8px 12px;margin-top:8px;border:0;border-radius:5px;cursor:pointer;font-weight:bold;color:#fff;background:#e30613">Kopieer naar klembord</button>');
       await new Promise((res) => { el.querySelector('#bbm-k').onclick = async () => { await W.navigator.clipboard.writeText(tekst); res(); }; });
     }
     box('<b>Gekopieerd ✓</b><br>' + hoofdstukken.length + ' groepen, ' + n + ' regels' + (nOnderdrukt ? ' (' + nOnderdrukt + ' onderdrukte regels overgeslagen)' : '') + '<br>Totaal (' + variant + '): <b>€ ' + payload.totaal.toLocaleString('nl-NL', { minimumFractionDigits: 2 }) + '</b>' +

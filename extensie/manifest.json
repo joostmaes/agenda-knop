@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BBM Tools",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Knoppen voor 2Jours en Bouw7: project naar Outlook-agenda en calculatie naar Bouw7-offerte.",
   "action": {
     "default_popup": "popup.html",
