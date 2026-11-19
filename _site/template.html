@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>BBM Vloeren · Tools</title>
+<style>
+  :root{
+    --ink:#17202a; --muted:#5b6670; --line:#e3e6ea; --bg:#f6f7f8; --card:#fff;
+    --accent:#c8501e; --blue:#1f6feb; --purple:#6f42c1; --green:#1a7f37;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  header{background:var(--ink);color:#fff;padding:40px 24px 36px}
+  .wrap{max-width:860px;margin:0 auto}
+  header .tag{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#f0a37f;font-weight:600}
+  header h1{margin:6px 0 8px;font-size:34px;line-height:1.15}
+  header p{margin:0;color:#c9d1d9;max-width:620px}
+  main{padding:32px 24px 64px}
+  h2{font-size:22px;margin:40px 0 12px}
+  h3{margin:0 0 4px;font-size:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;margin:16px 0}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:0}
+  .steps>li{counter-increment:s;position:relative;padding-left:40px;margin:12px 0}
+  .steps ul{list-style:disc;margin:6px 0}
+  .steps>li::before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+  kbd{font:13px ui-monospace,Menlo,Consolas,monospace;background:#eef0f2;border:1px solid #d5d9dd;border-bottom-width:2px;border-radius:4px;padding:1px 6px}
+  .bm{display:inline-block;padding:10px 18px;border-radius:8px;color:#fff;font-weight:700;text-decoration:none;cursor:grab;margin:10px 8px 6px 0;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+  .bm:active{cursor:grabbing}
+  .bm.agenda{background:var(--accent)} .bm.kopieer{background:var(--purple)} .bm.plak{background:var(--blue)}
+  .bm.reserve{background:#6b7480;font-weight:600;padding:7px 14px;font-size:14px}
+  .drag{font-size:13px;color:var(--muted)}
+  .tool-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+  .where{font-size:14px;color:var(--muted)}
+  .pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;background:#eef0f2;color:var(--muted);margin-right:6px}
+  ul{padding-left:20px} li{margin:4px 0}
+  .note{border-left:4px solid var(--accent);background:#fff7f2;padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;font-size:15px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  details{margin-top:12px} summary{cursor:pointer;font-weight:600}
+  footer{color:var(--muted);font-size:13px;text-align:center;padding:24px}
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:600;font-size:15px;margin:8px 0 4px}
+  .flow span.box{background:#eef0f2;border-radius:6px;padding:6px 10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="tag">BBM Vloeren · Tools</div>
+    <h1>Knoppen voor 2Jours en Bouw7</h1>
+    <p>Drie knoppen in je bladwijzerbalk die overtypen overbodig maken: een project in één klik in de agenda, en een calculatie uit 2Jours in één klik in een Bouw7-offerte.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <h2>Eenmalig installeren</h2>
+  <div class="card">
+    <ol class="steps">
+      <li>Open deze pagina in <b>Chrome</b> of <b>Edge</b> op de computer waar je de knoppen wilt gebruiken.</li>
+      <li>Zet de bladwijzerbalk aan: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd> (Mac: <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd>).</li>
+      <li><b>Sleep</b> de knoppen hieronder naar die balk. Niet klikken: klikken op deze pagina doet niets.</li>
+    </ol>
+    <div style="margin-top:14px">
+      <a class="bm agenda" href="{{L_AGENDA}}" onclick="event.preventDefault();alert('Sleep deze knop naar je bladwijzerbalk.')">→ Agenda</a>
+      <a class="bm kopieer" href="{{L_KOPIEER}}" onclick="event.preventDefault();alert('Sleep deze knop naar je bladwijzerbalk.')">2Jours → Kopieer</a>
+      <a class="bm plak" href="{{L_PLAK}}" onclick="event.preventDefault();alert('Sleep deze knop naar je bladwijzerbalk.')">Bouw7 ← Plak</a>
+      <div class="drag">↑ sleep naar de bladwijzerbalk</div>
+    </div>
+    <div class="note">Je hoeft dit maar één keer te doen. Verbeteringen aan de knoppen komen vanzelf binnen; de bladwijzer haalt bij elke klik de nieuwste versie op.</div>
+  </div>
+
+  <h2>Wat doet welke knop?</h2>
+  <div class="card">
+    <table>
+      <tr><th>Knop</th><th>Klik op</th><th>Resultaat</th></tr>
+      <tr><td><b>→ Agenda</b></td><td>Een project in 2Jours</td><td>Outlook-afspraak (.ics) met de juiste titel, tijd en categorie</td></tr>
+      <tr><td><b>2Jours → Kopieer</b></td><td>De calculatie van een project in 2Jours</td><td>Alle calculatieregels op het klembord</td></tr>
+      <tr><td><b>Bouw7 ← Plak</b></td><td>Een offerte in Bouw7</td><td>Die regels als hoofdstukken en offerteregels in de offerte</td></tr>
+    </table>
+  </div>
+
+  <!-- Agenda -->
+  <div class="card" id="agenda">
+    <div class="tool-head">
+      <div>
+        <h3>→ Agenda</h3>
+        <div class="where"><span class="pill">2Jours</span>project naar Outlook-afspraak</div>
+      </div>
+    </div>
+    <ol class="steps">
+      <li>Open een project in 2Jours. Elk tabblad werkt (Calculatie of Basisgegevens).</li>
+      <li>Klik op <b>→ Agenda</b> in je bladwijzerbalk. Er wordt een <b>.ics-bestand</b> gedownload.</li>
+      <li>Open het bestand: Outlook toont de afspraak. Controleer en klik op <b>Opslaan en sluiten</b>.</li>
+    </ol>
+    <p style="margin-bottom:4px"><b>Hoe de afspraak eruitziet</b></p>
+    <ul>
+      <li><b>Dekvloer</b>: titel met klant, m², dikte en eventueel vezel / randstrook / versneller. Zondag van de huidige week, 15:00–15:30, categorie <i>Rood</i>, als bezet.</li>
+      <li><b>Beton, schuimbeton, vloerrenovatie</b> en <b>egaliseren en diversen</b>: afspraak voor de hele dag.</li>
+      <li>Bij een <b>eenmalige klant</b> staat het telefoonnummer achter het adres in de locatie.</li>
+      <li>Meerdere dekvloeren in één calculatie? Dan wordt de titel kort: klant + omschrijving.</li>
+    </ul>
+    <div class="note">Staan er in één calculatie zowel beton- als dekvloergroepen, controleer dan de titel en categorie. Die combinatie wordt nog niet altijd goed herkend.</div>
+  </div>
+
+  <!-- Kopieer + Plak -->
+  <div class="card" id="bouw7">
+    <div class="tool-head">
+      <div>
+        <h3>2Jours → Kopieer &nbsp;+&nbsp; Bouw7 ← Plak</h3>
+        <div class="where"><span class="pill">2Jours</span><span class="pill">Bouw7</span>calculatie naar offerteregels</div>
+      </div>
+    </div>
+    <div class="flow"><span class="box">2Jours: calculatie</span> → <span class="box">Kopieer</span> → <span class="box">Bouw7: offerte</span> → <span class="box">Plak</span></div>
+    <ol class="steps">
+      <li>Open in 2Jours het project en ga naar het tabblad <b>Calculatie</b>.</li>
+      <li>Klik op <b>2Jours → Kopieer</b> en kies:
+        <ul>
+          <li><b>Complete begroting</b>: regelprijzen zonder opslagen.</li>
+          <li><b>Open begroting</b>: de opslagen van het Projectblad zijn in de regelprijzen verwerkt.</li>
+        </ul>
+        Je ziet hoeveel groepen en regels er zijn gekopieerd, plus het totaal. Onderdrukte regels worden overgeslagen.</li>
+      <li>Ga in Bouw7 naar de offerte. Een bestaande offerte openen kan, of maak een nieuwe aan via <b>+ Offerte</b>.</li>
+      <li><b>Nieuwe offerte?</b> Kies eerst het <b>contact</b>. Het BTW-tarief hangt van de klant af.</li>
+      <li>Klik op <b>Bouw7 ← Plak</b>. Je ziet een samenvatting. Heeft de offerte al regels, kies dan <b>Toevoegen</b> of <b>Vervangen</b>.</li>
+      <li>Controleer het totaal in Bouw7 en sla de offerte op (bij een nieuwe offerte).</li>
+    </ol>
+    <p style="margin-bottom:4px"><b>Goed om te weten</b></p>
+    <ul>
+      <li><b>BTW</b>: staat de klant in Bouw7 op <i>BTW verlegd</i>, dan krijgen alle regels BTW verlegd. Anders 21%.</li>
+      <li>De BTW-kolom in de pdf van Bouw7 hoort bij de standaard pdf-opmaak van Bouw7. Die komt niet door de knop.</li>
+      <li>De gegevens gaan alleen via het klembord van je eigen computer, niet via een externe server.</li>
+    </ul>
+  </div>
+
+  <h2>Werkt iets niet?</h2>
+  <div class="card">
+    <table>
+      <tr><th>Melding of probleem</th><th>Oplossing</th></tr>
+      <tr><td>"Open eerst de calculatie"</td><td>Ga in 2Jours naar het tabblad <b>Calculatie</b> van het project en klik opnieuw.</td></tr>
+      <tr><td>"Open eerst een offerte in Bouw7"</td><td>Open een offerte of klik op <b>+ Offerte</b> en probeer het opnieuw.</td></tr>
+      <tr><td>"Geen calculatie op het klembord"</td><td>Je hebt na het kopiëren iets anders gekopieerd. Klik in 2Jours opnieuw op <b>Kopieer</b>.</td></tr>
+      <tr><td>Er gebeurt niets na een klik</td><td>Ververs de pagina (<kbd>F5</kbd>) en probeer opnieuw. Werkt het dan nog niet, gebruik dan de reserveknop hieronder en laat het Joost weten.</td></tr>
+      <tr><td>Verkeerde titel of categorie in de agenda</td><td>Pas de afspraak in Outlook aan en geef het projectnummer door aan Joost.</td></tr>
+    </table>
+    <details>
+      <summary>Reserveknoppen (werken ook zonder internetverbinding met de code-server)</summary>
+      <p>Deze versies bevatten de volledige code in de bladwijzer zelf. Gebruik ze alleen als de gewone knoppen niet laden. Ze worden <b>niet</b> automatisch bijgewerkt; dit is de versie van {{DATUM}}.</p>
+      <a class="bm reserve" href="{{R_AGENDA}}" onclick="event.preventDefault()">→ Agenda (reserve)</a>
+      <a class="bm reserve" href="{{R_KOPIEER}}" onclick="event.preventDefault()">2Jours → Kopieer (reserve)</a>
+      <a class="bm reserve" href="{{R_PLAK}}" onclick="event.preventDefault()">Bouw7 ← Plak (reserve)</a>
+    </details>
+  </div>
+
+  <h2>Vragen of een idee?</h2>
+  <div class="card">
+    <p style="margin:0">Mis je een knop, of kan iets nog handiger? Mail Joost via <a href="mailto:info@joostmaes.nl">info@joostmaes.nl</a> met het projectnummer en wat je verwachtte.</p>
+  </div>
+
+</main>
+<footer>BBM Vloeren · interne tools · bijgewerkt {{DATUM}}</footer>
+</body>
+</html>
