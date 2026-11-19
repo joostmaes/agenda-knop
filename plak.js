@@ -40,12 +40,22 @@
     data.hoofdstukken.forEach((h) => h.regels.forEach((r) => { if (!r.tekst) totaalBouw7 += r2(r.aantal * r2(r.bedrag / r.aantal)); }));
     totaalBouw7 = r2(totaalBouw7);
     const afronding = r2(totaalBouw7 - data.totaal);
-    const samenvatting = (titel, tarief, verlegd) => '<b>' + titel + '</b><br>' +
+    const samenvatting = (titel, tarief, bron) => '<b>' + titel + '</b><br>' +
       'Project ' + (data.projectnummer || '?') + ' · ' + (data.variant === 'open' ? 'Open begroting' : 'Complete begroting') + '<br>' +
       data.hoofdstukken.length + ' hoofdstukken, ' + nNieuw + ' regels<br>Totaal 2Jours: <b>' + euro(data.totaal) + '</b>' +
       (Math.abs(afronding) >= 0.01 ? '<br>Totaal in Bouw7: <b>' + euro(totaalBouw7) + '</b> <span style="font-size:12px;color:#555">(' + (afronding > 0 ? '+' : '') + euro(afronding) + ' door afronding van stukprijzen op 2 decimalen)</span>' : '') +
-      '<br>BTW: ' + tarief.label + ' op alle regels' + (verlegd ? ' (klant staat in Bouw7 op BTW verlegd)' : '') +
+      '<br>BTW: ' + tarief.label + ' op alle regels' + (bron ? ' <span style="font-size:12px;color:#555">(' + bron + ')</span>' : '') +
       ((data.waarschuwingen || []).length ? '<div style="color:#b35900;margin-top:6px">⚠ ' + data.waarschuwingen.join('<br>⚠ ') + '</div>' : '');
+    // BTW verlegd: 2Jours is leidend (per project); alleen als dat ontbreekt het contact in Bouw7
+    const bepaalVerlegd = (contact) => {
+      const contactVerlegd = contact ? !!contact.isVatShifted : null;
+      if (typeof data.btwVerlegd === 'boolean') {
+        if (contactVerlegd !== null && contactVerlegd !== data.btwVerlegd)
+          (data.waarschuwingen = data.waarschuwingen || []).push('In 2Jours staat BTW verlegd ' + (data.btwVerlegd ? 'aan' : 'uit') + ', bij het contact in Bouw7 ' + (contactVerlegd ? 'aan' : 'uit') + '. De instelling van 2Jours is gebruikt.');
+        return { verlegd: data.btwVerlegd, bron: 'volgens 2Jours' };
+      }
+      return { verlegd: !!contactVerlegd, bron: contact ? 'volgens contact in Bouw7' : '' };
+    };
     const kiesTarief = (lijst, verlegd) => {
       const vind = (f) => lijst.find(f);
       return verlegd
@@ -59,19 +69,19 @@
       for (const e of document.querySelectorAll('*')) { const vm = e.__vue__; if (vm && vm.$data && vm.$data.quotation && vm.$data.quotation.document && Array.isArray(vm.$data.quotation.document.chapters)) { C = vm; break; } }
       if (!C) throw new Error('Formulier "Nieuwe offerte" niet gevonden. Wacht tot de pagina geladen is en probeer opnieuw.');
       const qm = C.$data.quotation, d = qm.document;
-      if (!d.contact && !window.__bbmModus) {
+      if (typeof data.btwVerlegd !== 'boolean' && !d.contact && !window.__bbmModus) {
         const door = await box('<b>Kies eerst het contact</b><br>Het BTW-tarief hangt af van de klant (BTW verlegd of 21%). Bouw7 past het tarief van bestaande regels niet aan als je het contact later kiest.',
           [['Toch plakken met 21%', 'door', '#888'], ['Ik kies eerst het contact', null, '#1f6feb']]);
         if (!door) return;
       }
-      const verlegd = !!(d.contact && d.contact.isVatShifted);
+      const { verlegd, bron } = bepaalVerlegd(d.contact);
       const lijst = (qm.vatTariffs && qm.vatTariffs.length ? qm.vatTariffs : qm._vatTariffs) || [];
       const tarief = kiesTarief(lijst, verlegd);
       if (!tarief) throw new Error('BTW-tarief ' + (verlegd ? 'verlegd' : '21%') + ' niet gevonden in Bouw7');
 
       const gevuld = (d.chapters || []).filter((c) => (c.name || '').trim() || (c.lines || []).some((l) => (l.description || '').trim() || Number(l.price)));
       const nBestaand = gevuld.reduce((a, c) => a + (c.lines || []).length, 0);
-      const kop = samenvatting('Plak calculatie in nieuwe offerte', tarief, verlegd);
+      const kop = samenvatting('Plak calculatie in nieuwe offerte', tarief, bron);
       let modus = window.__bbmModus;
       if (!modus) modus = nBestaand
         ? await box(kop + '<div style="margin-top:8px">Het formulier heeft al <b>' + nBestaand + '</b> regel(s).</div>', [['Vervangen', 'vervang', '#c0392b'], ['Toevoegen', 'voeg', '#1f6feb'], ['Annuleren', null, '#888']])
@@ -112,14 +122,14 @@
 
     // 3. BTW-tarief bepalen
     const tarieven = (await api('/list/vat-tariffs').then((r) => r.json())).items || [];
-    const verlegd = !!(q.contact && q.contact.isVatShifted);
+    const { verlegd, bron } = bepaalVerlegd(q.contact);
     const tarief = kiesTarief(tarieven, verlegd);
     if (!tarief) throw new Error('BTW-tarief ' + (verlegd ? 'verlegd' : '21%') + ' niet gevonden in Bouw7');
     const tariefVoor = () => tarief;
 
     // 4. Bestaande regels?
     const bestaand = (q.chapters || []).reduce((a, c) => a + (c.lines || []).length, 0);
-    const kop = samenvatting('Plak calculatie in offerte ' + (q.quotationNumber || ''), tarief, verlegd);
+    const kop = samenvatting('Plak calculatie in offerte ' + (q.quotationNumber || ''), tarief, bron);
     let modus = window.__bbmModus;
     if (modus) {} else if (bestaand) {
       modus = await box(kop + '<div style="margin-top:8px">De offerte heeft al <b>' + bestaand + '</b> regel(s).</div>', [

@@ -1,4 +1,4 @@
-// BBM — 2Jours calculatie → klembord (voor "Plak in Bouw7")  (getest 04-11-2026; frameset-fix 11-11-2026; onderdrukte regels 19-11-2026)
+// BBM — 2Jours calculatie → klembord (voor "Plak in Bouw7")  (getest 04-11-2026; frameset-fix 11-11-2026; onderdrukte regels + BTW verlegd 19-11-2026)
 // Draaien op een calculatiepagina in 2Jours (URL bevat projectId en calcId).
 (async () => {
   const VERSIE = 1;
@@ -73,6 +73,9 @@
     if (som(staart.materieel) !== som(staart.materiaal))
       waarschuwingen.push('Materieel heeft andere opslagen dan materiaal; 2Jours toont ze in één kolom, dus het script gebruikt de opslag van materiaal.');
     const pbTotaal = (pb.body.innerText.match(/Totaal exclusief btw\s*€?\s*([\d.,]+)/) || [])[1];
+    // BTW verlegd staat per project in 2Jours (Projectblad, knop "Verlegd"): 1 = verlegd, 0 = niet
+    const verlegdVeld = pb.getElementById('BTWVerlegd');
+    const btwVerlegd = verlegdVeld ? verlegdVeld.getAttribute('value') === '1' || verlegdVeld.value === '1' : null;
 
     // Groepen
     let sel = D.getElementById('groupId');
@@ -118,7 +121,7 @@
     const payload = {
       bbm2bouw7: VERSIE, variant, projectnummer, projectId, calcId,
       staart, totaal: r2(totaalRegels), totaalExclOpslagen: r2(totaalExcl),
-      projectbladTotaal: pbTotaal ? num(pbTotaal) : null, waarschuwingen, hoofdstukken,
+      projectbladTotaal: pbTotaal ? num(pbTotaal) : null, btwVerlegd, waarschuwingen, hoofdstukken,
     };
     payload.totaalInclOpslagen = r2(totaalIncl);
     // Projectblad-totaal is incl. opslagen; kleine afrondingsverschillen (centen) zijn normaal
