@@ -15,3 +15,10 @@ Na een wijziging de cache van jsDelivr legen (één keer openen per bestand):
 - https://purge.jsdelivr.net/gh/joostmaes/agenda-knop@main/agenda.js
 - https://purge.jsdelivr.net/gh/joostmaes/agenda-knop@main/kopieer.js
 - https://purge.jsdelivr.net/gh/joostmaes/agenda-knop@main/plak.js
+
+## Website bbm.joostmaes.nl
+- `/` overzicht van alle BBM-tools (`_site/overzicht.html`)
+- `/bladwijzers/` installatie en uitleg van de knoppen (`_site/template.html`)
+- `/dekvloer/` en `/bonnetjes/` zijn aparte apps in Coolify
+
+Na een wijziging: `python3 _site/build.py .`, pushen en in Coolify op Redeploy (app `bbm-tools`).

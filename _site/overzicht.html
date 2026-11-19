@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>BBM Vloeren · Tools</title>
+{{FAVICON}}
+<style>
+  :root{
+    --ink:#1d1d1b; --muted:#5f5f5c; --line:#e2e2e0; --bg:#f4f4f3; --card:#fff;
+    --accent:#e30613; --accent-soft:#fdeeef; --soft:#f0f0ef;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  .wrap{max-width:960px;margin:0 auto}
+  header{background:#fff;padding:32px 0 30px;border-bottom:4px solid var(--accent)}
+  header .wrap{display:flex;align-items:center;gap:28px;padding:0 24px}
+  header .logo{height:92px;width:auto;flex:none}
+  header .tag{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  header h1{margin:4px 0 6px;font-size:32px;line-height:1.15}
+  header p{margin:0;color:var(--muted);max-width:560px}
+  main{padding:28px 24px 56px}
+  h2{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:28px 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+  a.tile{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;color:inherit;text-decoration:none;transition:border-color .15s,box-shadow .15s,transform .15s}
+  a.tile:hover,a.tile:focus-visible{border-color:var(--accent);box-shadow:0 6px 20px rgba(29,29,27,.08);transform:translateY(-2px);outline:none}
+  .tile .top{display:flex;align-items:center;gap:14px}
+  .tile img,.tile .ic{width:48px;height:48px;border-radius:11px;flex:none}
+  .tile .ic{display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-weight:800;font-size:20px}
+  .tile .ic.dark{background:var(--ink)}
+  .tile h3{margin:0;font-size:19px}
+  .tile .voor{font-size:13px;color:var(--muted)}
+  .tile p{margin:0;color:var(--muted);font-size:15px}
+  .tile .meta{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px;padding-top:4px}
+  .pill{font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--muted)}
+  .pill.rood{background:var(--accent-soft);color:var(--accent)}
+  .tile .ga{font-weight:700;color:var(--accent);font-size:15px}
+  .links{display:flex;flex-wrap:wrap;gap:10px}
+  .links a{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;color:var(--ink);text-decoration:none;font-weight:600}
+  .links a:hover{border-color:var(--accent);color:var(--accent)}
+  .tip{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;font-size:15px;margin-top:28px}
+  footer{color:var(--muted);font-size:13px;text-align:center;padding:24px}
+  footer a{color:var(--muted)}
+  @media (max-width:560px){header .wrap{flex-direction:column;align-items:flex-start;gap:14px} header .logo{height:64px} header h1{font-size:26px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    {{LOGO}}
+    <div>
+      <div class="tag">BBM Vloeren · Tools</div>
+      <h1>Alle BBM-tools op één plek</h1>
+      <p>Apps voor onderweg en knoppen voor op kantoor. Kies hieronder wat je nodig hebt.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <h2>Voor onderweg</h2>
+  <div class="grid">
+    <a class="tile" href="/dekvloer/">
+      <div class="top"><img src="/dekvloer/icons/icon-192.png" alt=""><div><h3>Dekvloer</h3><div class="voor">Voor chauffeurs</div></div></div>
+      <p>Specificaties van een gestorte dekvloer doorgeven: foto, m², zand, cement en toevoegingen. Werkt ook zonder bereik.</p>
+      <div class="meta"><span class="pill">Telefoon</span><span class="pill">Installeerbaar als app</span></div>
+      <span class="ga">Openen →</span>
+    </a>
+    <a class="tile" href="/bonnetjes/">
+      <div class="top"><img src="/bonnetjes/icons/icon-192.png" alt=""><div><h3>Bonnetjes</h3><div class="voor">Voor iedereen die bonnen heeft</div></div></div>
+      <p>Bon scannen en insturen met projectnummer, bedrag en betaalwijze. Werkt ook zonder bereik.</p>
+      <div class="meta"><span class="pill">Telefoon</span><span class="pill">Installeerbaar als app</span></div>
+      <span class="ga">Openen →</span>
+    </a>
+  </div>
+
+  <h2>Op kantoor</h2>
+  <div class="grid">
+    <a class="tile" href="/bladwijzers/">
+      <div class="top"><div class="ic dark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></div><div><h3>Bladwijzers 2Jours &amp; Bouw7</h3><div class="voor">Voor werkvoorbereiding en administratie</div></div></div>
+      <p>Knoppen in je bladwijzerbalk: project naar de Outlook-agenda, en calculatie uit 2Jours in één klik in een Bouw7-offerte.</p>
+      <div class="meta"><span class="pill">Chrome / Edge</span><span class="pill rood">Eenmalig installeren</span></div>
+      <span class="ga">Installeren en uitleg →</span>
+    </a>
+  </div>
+
+  <h2>Snel naar</h2>
+  <div class="links">
+    <a href="https://calculatie.2jours.nl/" target="_blank" rel="noopener">2Jours ↗</a>
+    <a href="https://start.bouw7.nl/" target="_blank" rel="noopener">Bouw7 ↗</a>
+    <a href="https://outlook.office.com/calendar/" target="_blank" rel="noopener">Outlook-agenda ↗</a>
+  </div>
+
+  <div class="tip"><b>Tip voor op je telefoon:</b> open een app hierboven en kies in het menu van de browser <b>Toevoegen aan beginscherm</b>. Dan staat hij als gewone app tussen je andere apps.</div>
+
+</main>
+<footer>BBM Vloeren · interne tools · vragen of ideeën: <a href="mailto:info@joostmaes.nl">info@joostmaes.nl</a></footer>
+</body>
+</html>
