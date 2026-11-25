@@ -8,7 +8,7 @@
  *   blauw     → sloop / beton / schuimbeton (evt. met dekvloer, vvw, egaliseren):
  *               "Naam Slopen woonbeton 73 m2 pigment PIR wap 80 m2 schuim vvw dekvl"
  *   handmatig → onbekende groepen: "Naam handmatig invoeren"
- * Alle afspraken: zondag van de huidige week, 15:00–15:30, bezet.
+ * Alle afspraken op zondag van de huidige week, bezet: rood/groen 15:00–15:30, blauw/handmatig 04:30–05:00.
  */
 (async () => {
   const TEST = window.__AK_TEST === true; // bij testen: geen download, alleen resultaat teruggeven
@@ -16,7 +16,9 @@
   // ===== Instellingen =====
   // Outlook-categorie per soort afspraak (exacte naam zoals in Outlook; leeg = geen kleur)
   const CATEGORIE = { rood: 'Categorie Rood', groen: 'Categorie Groen', blauw: '', handmatig: '' };
-  const START = '150000', EIND = '153000';   // zondag 15:00–15:30
+  // Tijd per soort afspraak op zondag: met kleur 15:00–15:30, zonder kleur (blauw/handmatig) 04:30–05:00
+  const TIJD = { rood: ['150000', '153000'], groen: ['150000', '153000'],
+                 blauw: ['043000', '050000'], handmatig: ['043000', '050000'] };
 
   // ===== 1. Project-id vinden in de frames van 2Jours =====
   const frames = [];
@@ -153,6 +155,7 @@
     const esc = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
     const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
 
+    const [START, EIND] = TIJD[out.categorie] || TIJD.rood;
     const tijd = ['DTSTART;TZID=Europe/Amsterdam:' + ymd(sun) + 'T' + START,
                   'DTEND;TZID=Europe/Amsterdam:' + ymd(sun) + 'T' + EIND];
     const vtimezone = [
