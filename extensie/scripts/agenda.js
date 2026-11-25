@@ -3,16 +3,20 @@
  * Werkt volledig in de browser; er gaan geen gegevens naar een externe server.
  *
  * Categorieën (herkend aan de groepen in de calculatie):
- *   dekvloer  → titel "Naam m2 dikte vezel randstrook versneller", zondag 15:00–15:30, Categorie Rood
- *   beton     → (formaat volgt) nu: hele dag, oude titel
- *   overig    → egaliseren en diversen (formaat volgt) nu: hele dag, oude titel
+ *   rood      → alleen dekvloer (evt. + vloerverwarming): "Naam m2 dikte vezel randstrook versneller"
+ *   groen     → alleen egaliseren: "Naam Egaliseren m2"
+ *   blauw     → sloop / beton / schuimbeton (evt. met dekvloer, vvw, egaliseren):
+ *               "Naam Slopen woonbeton 73 m2 pigment PIR wap 80 m2 schuim dekvl vvw"
+ *   handmatig → onbekende groepen: "Naam handmatig invoeren"
+ * Alle afspraken: zondag van de huidige week, 15:00–15:30, bezet.
  */
 (async () => {
   const TEST = window.__AK_TEST === true; // bij testen: geen download, alleen resultaat teruggeven
 
   // ===== Instellingen =====
-  const CAT_DEKVLOER = 'Categorie Rood';   // exacte naam van de categorie in Outlook
-  const DEKVLOER_START = '150000', DEKVLOER_EIND = '153000';
+  // Outlook-categorie per soort afspraak (exacte naam zoals in Outlook; leeg = geen kleur)
+  const CATEGORIE = { rood: 'Categorie Rood', groen: 'Categorie Groen', blauw: '', handmatig: '' };
+  const START = '150000', EIND = '153000';   // zondag 15:00–15:30
 
   // ===== 1. Project-id vinden in de frames van 2Jours =====
   const frames = [];
@@ -85,47 +89,61 @@
     }
     if (!ready(blocks)) return fail('De basisgegevens van dit project konden niet worden geladen. Probeer het opnieuw vanaf het tabblad Basisgegevens.');
 
-    // ===== 3. Calculatie ophalen: groepen en regels =====
-    const html = await (await host.fetch('/Calculatie/Bewerken/Bewerken.aspx?projectId=' + pid,
-      { credentials: 'include' })).text();
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    if (!calcId) calcId = (html.match(/calcId=(\d+)/i) || [])[1] || '';
+    // ===== 3. Calculatie ophalen: alle groepen met hun regels =====
+    // 2Jours toont de calculatie per groep; elke groep wordt apart opgehaald.
+    const laad = async url => {
+      const t = await (await host.fetch(url, { credentials: 'include' })).text();
+      return { html: t, doc: new DOMParser().parseFromString(t, 'text/html') };
+    };
+    const basisUrl = '/Calculatie/Bewerken/Bewerken.aspx?projectId=' + pid;
+    const eerste = await laad(basisUrl);
+    if (!calcId) calcId = (eerste.html.match(/calcId=(\d+)/i) || [])[1] || '';
 
-    // Kolommen "aantal" en "eenh." zoeken in de kopregel van de tabel
-    let iAantal = 6, iEenh = 7;
-    const headRow = [...doc.querySelectorAll('tr')].find(tr =>
-      [...tr.cells].some(c => c.textContent.trim().toLowerCase() === 'aantal'));
-    if (headRow) {
-      [...headRow.cells].forEach((c, i) => {
+    const cellVal = c => (c ? (c.querySelector('input')?.getAttribute('value') ?? c.textContent) : '').trim();
+    const num = s => { const n = parseFloat(String(s).replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+    const regelsVan = doc => {
+      // Kolommen "aantal" en "eenh." zoeken in de kopregel van de tabel
+      let iAantal = 6, iEenh = 7;
+      const headRow = [...doc.querySelectorAll('tr')].find(tr =>
+        [...tr.cells].some(c => c.textContent.trim().toLowerCase() === 'aantal'));
+      if (headRow) [...headRow.cells].forEach((c, i) => {
         const t = c.textContent.trim().toLowerCase();
         if (t === 'aantal') iAantal = i;
         if (t.startsWith('eenh')) iEenh = i;
       });
+      return [...doc.querySelectorAll('td.inp')].map(td => td.closest('tr'))
+        .filter((v, i, a) => v && a.indexOf(v) === i)
+        .map(tr => ({
+          text: (tr.querySelector('td.inp div')?.textContent || tr.querySelector('td.inp')?.textContent || '').trim(),
+          header: !tr.querySelector('td.ut')?.textContent.trim(),
+          aantal: num(cellVal(tr.cells[iAantal])),
+          eenheid: cellVal(tr.cells[iEenh]).toLowerCase()
+        }))
+        .filter(r => r.text && !/^Totalen$/i.test(r.text));
+    };
+
+    const opties = [...(eerste.doc.getElementById('groupId')?.options || [])]
+      .map(o => ({ id: o.value, naam: o.textContent.trim(), gekozen: o.selected }));
+    const groepen = [];
+    if (!opties.length) {
+      groepen.push({ naam: '', rows: regelsVan(eerste.doc) });
+    } else {
+      for (const o of opties) {
+        const d = o.gekozen ? eerste.doc
+          : (await laad(basisUrl + '&calcId=' + calcId + '&groupId=' + o.id)).doc;
+        groepen.push({ naam: o.naam, rows: regelsVan(d) });
+      }
+      // Terugzetten op de groep die in 2Jours openstond
+      const open = opties.find(o => o.gekozen);
+      if (open && opties.length > 1) await laad(basisUrl + '&calcId=' + calcId + '&groupId=' + open.id);
     }
-    const cellVal = c => (c ? (c.querySelector('input')?.getAttribute('value') ?? c.textContent) : '').trim();
-    const num = s => { const n = parseFloat(String(s).replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+    const groups = groepen.map(g => g.naam).filter(Boolean);
 
-    const rows = [...doc.querySelectorAll('td.inp')].map(td => td.closest('tr'))
-      .filter((v, i, a) => v && a.indexOf(v) === i)
-      .map(tr => ({
-        text: (tr.querySelector('td.inp div')?.textContent || tr.querySelector('td.inp')?.textContent || '').trim(),
-        header: !tr.querySelector('td.ut')?.textContent.trim(),
-        aantal: num(cellVal(tr.cells[iAantal])),
-        eenheid: cellVal(tr.cells[iEenh]).toLowerCase()
-      }))
-      .filter(r => r.text);
-
-    // Groepen uit het groepenvenster, bv. "42.30.00 P.C. AFWERK- DEKVLOEREN"
-    const groups = [...new Set([...doc.querySelectorAll('option, li, div, span, td, a')]
-      .flatMap(e => [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()))
-      .filter(t => /^\d{2}(\.\d{2}){0,2}\s+[A-Za-z]/.test(t) && t.length < 80))];
-
-    const out = analyse({ blocks, rows, groups });
+    const out = analyse({ blocks, groepen });
 
     // ===== 4. Datum: zondag van de huidige week (vandaag als het zondag is) =====
     const now = new Date();
     const sun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()) % 7);
-    const next = new Date(sun.getFullYear(), sun.getMonth(), sun.getDate() + 1);
     const ymd = x => x.getFullYear() + String(x.getMonth() + 1).padStart(2, '0') + String(x.getDate()).padStart(2, '0');
 
     // ===== 5. .ics opbouwen =====
@@ -135,17 +153,15 @@
     const esc = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
     const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
 
-    const tijd = out.categorie === 'dekvloer'
-      ? ['DTSTART;TZID=Europe/Amsterdam:' + ymd(sun) + 'T' + DEKVLOER_START,
-         'DTEND;TZID=Europe/Amsterdam:' + ymd(sun) + 'T' + DEKVLOER_EIND]
-      : ['DTSTART;VALUE=DATE:' + ymd(sun), 'DTEND;VALUE=DATE:' + ymd(next), 'X-MICROSOFT-CDO-ALLDAYEVENT:TRUE'];
-    const vtimezone = out.categorie === 'dekvloer' ? [
+    const tijd = ['DTSTART;TZID=Europe/Amsterdam:' + ymd(sun) + 'T' + START,
+                  'DTEND;TZID=Europe/Amsterdam:' + ymd(sun) + 'T' + EIND];
+    const vtimezone = [
       'BEGIN:VTIMEZONE', 'TZID:Europe/Amsterdam',
       'BEGIN:STANDARD', 'DTSTART:19701025T030000', 'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
       'TZOFFSETFROM:+0200', 'TZOFFSETTO:+0100', 'TZNAME:CET', 'END:STANDARD',
       'BEGIN:DAYLIGHT', 'DTSTART:19700329T020000', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
       'TZOFFSETFROM:+0100', 'TZOFFSETTO:+0200', 'TZNAME:CEST', 'END:DAYLIGHT',
-      'END:VTIMEZONE'] : [];
+      'END:VTIMEZONE'];
 
     const ics = [
       'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Agenda-knop//2Jours naar Outlook//NL', 'METHOD:PUBLISH',
@@ -157,7 +173,7 @@
       'SUMMARY:' + esc(out.titel),
       'LOCATION:' + esc(out.locatie),
       'DESCRIPTION:' + esc(beschrijving),
-      ...(out.categorie === 'dekvloer' ? ['CATEGORIES:' + esc(CAT_DEKVLOER)] : []),
+      ...(CATEGORIE[out.categorie] ? ['CATEGORIES:' + esc(CATEGORIE[out.categorie])] : []),
       'TRANSP:OPAQUE',
       'X-MICROSOFT-CDO-BUSYSTATUS:BUSY', // 'Weergeven als: Bezet'
       'END:VEVENT', 'END:VCALENDAR'
@@ -184,7 +200,7 @@
   }
 
   // ===== Analyse: puur op de gegevens, zonder pagina (ook los te testen) =====
-  function analyse({ blocks, rows, groups }) {
+  function analyse({ blocks, groepen }) {
     const get = k => Object.values(blocks).find(b => b[k])?.[k] || '';
     const adres = b => [b['Adres'], [b['Postcode'], b['Plaats']].filter(Boolean).join(' ')].filter(Boolean).join(', ');
     const opdrachtgever = get('Opdrachtgever');
@@ -197,74 +213,148 @@
     const telefoon = eenmalig ? (factuurBlok['Telefoon'] || '') : '';
     const locatie = [werkadres || adres(factuurBlok), telefoon].filter(Boolean).join(' | ');
 
-    // Categorie uit de groepen; staan die niet in de pagina, dan uit de calculatieregels
-    const g = groups.length ? groups.join(' | ') : rows.map(r => r.text).join(' | ');
-    const categorie = /dekvloer/i.test(g) ? 'dekvloer'
-      : /beton|schuimbeton|renovatie/i.test(g) ? 'beton' : 'overig';
+    // --- Soort per groep ---
+    const soortVan = g => {
+      const n = g.naam;
+      if (!n) return g.rows.some(r => /dekvloer/i.test(r.text)) ? 'dekvloer' : 'onbekend';
+      if (/sloop/i.test(n)) return 'sloop';
+      if (/schuimbeton/i.test(n)) return 'schuim';
+      if (/egalis/i.test(n)) return 'egal';
+      if (/dekvloer/i.test(n)) return 'dekvloer';
+      if (/vloerverwarming/i.test(n)) return 'vvw';
+      if (/^21\b.*(betonvloer|woonbeton)/i.test(n)) return 'beton';
+      return 'onbekend';
+    };
+    groepen.forEach(g => { g.soort = soortVan(g); });
+    const heeft = s => groepen.some(g => g.soort === s);
+    const regels = s => groepen.filter(g => g.soort === s).flatMap(g => g.rows);
+    const soorten = new Set(groepen.map(g => g.soort));
 
-    // Regels zonder opties, alternatieven en opmerkingen
+    let categorie;
+    if (!groepen.length || heeft('onbekend')) categorie = 'handmatig';
+    else if (heeft('sloop') || heeft('beton') || heeft('schuim') || (heeft('egal') && soorten.size > 1)) categorie = 'blauw';
+    else if (heeft('dekvloer') && [...soorten].every(s => s === 'dekvloer' || s === 'vvw')) categorie = 'rood';
+    else if (heeft('egal')) categorie = 'groen';
+    else categorie = 'handmatig';
+
+    // --- Hulpfuncties ---
     const isNotitie = t => /^(eventueel|optie|let op)\b/i.test(t);
     const isToeslag = t => /\bper\s+(cm|m2|m3|m²|m³)\b|meerdikte|meerverbruik/i.test(t);
-    const echte = rows.filter(r => !isNotitie(r.text));
-    const vloerRows = echte.filter(r => /vloer/i.test(r.text) && !isToeslag(r.text));
     const actief = r => r.aantal > 0;
-
+    const getal = n => String(Math.round(n * 100) / 100).replace('.', ',');
     const toCm = (n, unit) => {
       let v = parseFloat(String(n).replace(',', '.'));
       if (unit.toLowerCase() === 'mm') v = v / 10;
       return String(Math.round(v * 10) / 10).replace('.', ',');
     };
-    let dikte = '';
-    for (const r of echte) {
-      const m = r.text.match(/dikte\D{0,15}?(\d+(?:[.,]\d+)?)\s*(mm|cm)\b/i);
-      if (m && !/meerdikte/i.test(r.text.slice(0, m.index + 9))) { dikte = toCm(m[1], m[2]); break; }
-    }
-    if (!dikte) for (const r of vloerRows) {
-      const m = r.text.match(/(\d+(?:[.,]\d+)?)\s*(mm|cm)\b/i);
-      if (m) { dikte = toCm(m[1], m[2]); break; }
-    }
+    const oppervlakte = rows => {
+      const r = rows.find(r => actief(r) && /^oppervlakte/i.test(r.text));
+      return r ? getal(r.aantal) : '';
+    };
 
     const ontbreekt = [];
-    let titel;
-    // Meerdere dekvloeren in één calculatie (bv. per badkamer of per fase)
-    const dekvloerRegels = vloerRows.filter(r => actief(r) && /dekvloer/i.test(r.text));
-    const meerdere = categorie === 'dekvloer' && dekvloerRegels.length > 1;
+    let titel, meerdere = false;
 
-    if (meerdere) {
-      // Dan geen m2/dikte/opties in de titel, alleen klant + omschrijving van het project
-      titel = [opdrachtgever, omschrijving].filter(Boolean).join(' ');
-    } else if (categorie === 'dekvloer') {
-      // m2: aantal van de hoofdregel van de vloer; anders uit de omschrijving ("Dekvloer 88 m2")
-      const hoofd = vloerRows.find(r => actief(r) && /m2|m²/.test(r.eenheid)) || vloerRows.find(actief);
-      let m2 = hoofd ? String(Math.round(hoofd.aantal * 100) / 100).replace('.', ',') : '';
-      if (!m2) m2 = ((omschrijving.match(/(\d+(?:[.,]\d+)?)\s*m2/i) || [])[1] || '');
-      const heeft = re => echte.some(r => actief(r) && re.test(r.text));
-      const vezel = heeft(/vez(el|le)/i) /* ook typfout 'vezleversterkt' */, rand = heeft(/randstro/i), versneller = heeft(/versneller/i);
-      if (!m2) ontbreekt.push('m2');
-      if (!dikte) ontbreekt.push('dikte');
-      titel = [opdrachtgever, (m2 || '??') + ' m2', (dikte || '??') + ' cm',
-        vezel && 'vezel', rand && 'randstrook', versneller && 'versneller'].filter(Boolean).join(' ');
-    } else {
-      // Beton en overig: formaat volgt nog; voorlopig de oude titel
-      const TYPES = [
-        [/anhydriet|calciumsulfaat|\bCA[- ]?C\d/i, 'Anhydriet'],
-        [/zand[- ]?cement/i, 'Zandcement'],
-        [/cement|\bCT[- ]?C\d/i, 'Cementgebonden'],
-        [/schuimbeton/i, 'Schuimbeton'],
-        [/\bPU\b|polyurethaan/i, 'PU'],
-        [/epoxy/i, 'Epoxy'],
-        [/beton/i, 'Beton'],
-      ];
-      let type = '';
-      for (const r of [...vloerRows, ...echte]) {
-        const hit = TYPES.find(([re]) => re.test(r.text));
-        if (hit) { type = hit[1]; break; }
+    if (categorie === 'handmatig') {
+      titel = [opdrachtgever, 'handmatig invoeren'].filter(Boolean).join(' ');
+
+    } else if (categorie === 'rood') {
+      const echte = regels('dekvloer').filter(r => !isNotitie(r.text));
+      const vloerRows = echte.filter(r => /vloer/i.test(r.text) && !isToeslag(r.text));
+      let dikte = '';
+      for (const r of echte) {
+        const m = r.text.match(/dikte\D{0,15}?(\d+(?:[.,]\d+)?)\s*(mm|cm)\b/i);
+        if (m && !/meerdikte/i.test(r.text.slice(0, m.index + 9))) { dikte = toCm(m[1], m[2]); break; }
       }
-      if (!dikte) ontbreekt.push('dikte');
-      if (!type) ontbreekt.push('type vloer');
-      titel = [opdrachtgever, omschrijving, (dikte || '??') + ' cm', type || '??'].filter(Boolean).join(' ');
+      if (!dikte) for (const r of vloerRows) {
+        const m = r.text.match(/(\d+(?:[.,]\d+)?)\s*(mm|cm)\b/i);
+        if (m) { dikte = toCm(m[1], m[2]); break; }
+      }
+      // Meerdere dekvloeren in één calculatie (bv. per badkamer of per fase): alleen naam + omschrijving
+      meerdere = vloerRows.filter(r => actief(r) && /dekvloer/i.test(r.text)).length > 1;
+      if (meerdere) {
+        titel = [opdrachtgever, omschrijving].filter(Boolean).join(' ');
+      } else {
+        const hoofd = vloerRows.find(r => actief(r) && /m2|m²/.test(r.eenheid)) || vloerRows.find(actief);
+        let m2 = hoofd ? getal(hoofd.aantal) : '';
+        if (!m2) m2 = ((omschrijving.match(/(\d+(?:[.,]\d+)?)\s*m2/i) || [])[1] || '');
+        const met = re => echte.some(r => actief(r) && re.test(r.text));
+        const vezel = met(/vez(el|le)/i) /* ook typfout 'vezleversterkt' */, rand = met(/randstro/i), versneller = met(/versneller/i);
+        if (!m2) ontbreekt.push('m2');
+        if (!dikte) ontbreekt.push('dikte');
+        titel = [opdrachtgever, (m2 || '??') + ' m2', (dikte || '??') + ' cm',
+          vezel && 'vezel', rand && 'randstrook', versneller && 'versneller'].filter(Boolean).join(' ');
+      }
+
+    } else if (categorie === 'groen') {
+      const m2 = oppervlakte(regels('egal')) ||
+        getal((regels('egal').find(r => actief(r) && /m2|m²/.test(r.eenheid)) || {}).aantal || 0).replace(/^0$/, '');
+      if (!m2) ontbreekt.push('m2');
+      titel = [opdrachtgever, 'Egaliseren', (m2 || '??') + ' m2'].filter(Boolean).join(' ');
+
+    } else { // blauw
+      const delen = [];
+      if (heeft('sloop')) delen.push('Slopen');
+
+      if (heeft('beton')) {
+        const rows = regels('beton').filter(r => !isNotitie(r.text));
+        const afwerk = rows.find(r => /^vloer afwerken/i.test(r.text)) || { text: '' };
+        if (/rei/i.test(afwerk.text)) {
+          // Vlak onder de rei: ruw + m3 letterlijk uit de betonregel
+          const beton = rows.find(r => actief(r) && /^beton\s*:/i.test(r.text) && /m3|m³/.test(r.eenheid));
+          delen.push('ruw');
+          if (beton) delen.push(getal(beton.aantal) + ' m3');
+        } else if (/monolitisch/i.test(afwerk.text)) {
+          if (rows.some(r => /bedrijfsvloer/i.test(r.text))) delen.push('betonvloer');
+          else if (rows.some(r => /woonbeton/i.test(r.text))) delen.push('woonbeton');
+          else delen.push('SPECIAAL!');
+        } else {
+          delen.push('SPECIAAL!');
+        }
+
+        const m2 = oppervlakte(rows);
+        if (!m2) ontbreekt.push('m2 betonvloer');
+        delen.push((m2 || '??') + ' m2');
+
+        if (rows.some(r => actief(r) && /pigment/i.test(r.text))) delen.push('pigment');
+
+        const iso = rows.find(r => actief(r) && /^isolatie/i.test(r.text));
+        if (iso) delen.push(/\bPIR\b/i.test(iso.text) ? 'PIR' : /tempex|\bEPS\b/i.test(iso.text) ? 'EPS' : 'SPECIAAL!');
+
+        const wap = rows.filter(r => actief(r) && /wapening/i.test(r.text) && !/afstandhouder|vezel/i.test(r.text));
+        if (wap.length) {
+          const onder = wap.filter(r => /^onderwapening/i.test(r.text));
+          const boven = wap.filter(r => /^bovenwapening/i.test(r.text));
+          if (!onder.length && !boven.length) {
+            delen.push('SPECIAAL!');   // bv. "WAPENING: enkel leggen"
+          } else {
+            delen.push(onder.length && boven.length ? 'dubbele wap' : 'wap');
+            const MAAT = { '150.150.06': '', '150.150.08': '150-08', '100.100.08': '100-08', '100.100.06': '100-06' };
+            const maten = [...onder, ...boven].map(r => {
+              const m = r.text.match(/(\d{2,3})\.(\d{2,3})\.(\d{2})/);
+              return m && (m[0] in MAAT) ? MAAT[m[0]] : 'SPECIAAL!';
+            });
+            [...new Set(maten)].filter(Boolean).forEach(m => delen.push(m));
+          }
+        }
+      }
+
+      if (heeft('schuim')) {
+        const m2 = oppervlakte(regels('schuim'));
+        if (!m2) ontbreekt.push('m2 schuimbeton');
+        delen.push((m2 || '??') + ' m2 schuim');
+      }
+      if (heeft('dekvloer')) delen.push('dekvl');
+      if (heeft('vvw')) delen.push('vvw');
+      if (heeft('egal')) {
+        const m2 = oppervlakte(regels('egal'));
+        delen.push('Egaliseren' + (m2 ? ' ' + m2 + ' m2' : ''));
+      }
+      titel = [opdrachtgever, ...delen].filter(Boolean).join(' ');
     }
+
     return { categorie, titel, locatie, werkadresGevonden: !!werkadres, projectnummer, ontbreekt,
-      klant: eenmalig ? 'eenmalig' : 'terugkerend', telefoon, meerdereDekvloeren: meerdere };
+      klant: eenmalig ? 'eenmalig' : 'terugkerend', telefoon, meerdereDekvloeren: meerdere,
+      soorten: groepen.map(g => g.naam + ' → ' + g.soort) };
   }
 })();
