@@ -6,7 +6,7 @@
  *   rood      → alleen dekvloer (evt. + vloerverwarming): "Naam m2 dikte vezel randstrook versneller"
  *   groen     → alleen egaliseren: "Naam Egaliseren m2"
  *   blauw     → sloop / beton / schuimbeton (evt. met dekvloer, vvw, egaliseren):
- *               "Naam Slopen woonbeton 73 m2 pigment PIR wap 80 m2 schuim dekvl vvw"
+ *               "Naam Slopen woonbeton 73 m2 pigment PIR wap 80 m2 schuim vvw dekvl"
  *   handmatig → onbekende groepen: "Naam handmatig invoeren"
  * Alle afspraken: zondag van de huidige week, 15:00–15:30, bezet.
  */
@@ -344,8 +344,8 @@
         if (!m2) ontbreekt.push('m2 schuimbeton');
         delen.push((m2 || '??') + ' m2 schuim');
       }
-      if (heeft('dekvloer')) delen.push('dekvl');
       if (heeft('vvw')) delen.push('vvw');
+      if (heeft('dekvloer')) delen.push('dekvl');
       if (heeft('egal')) {
         const m2 = oppervlakte(regels('egal'));
         delen.push('Egaliseren' + (m2 ? ' ' + m2 + ' m2' : ''));
