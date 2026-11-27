@@ -16,9 +16,11 @@ Na een wijziging de cache van jsDelivr legen (één keer openen per bestand):
 - https://purge.jsdelivr.net/gh/joostmaes/agenda-knop@main/kopieer.js
 - https://purge.jsdelivr.net/gh/joostmaes/agenda-knop@main/plak.js
 
-## Website bbm.joostmaes.nl
-- `/` overzicht van alle BBM-tools (`_site/overzicht.html`)
-- `/bladwijzers/` installatie en uitleg van de knoppen (`_site/template.html`)
-- `/dekvloer/` en `/bonnetjes/` zijn aparte apps in Coolify
+## Website klant.joostmaes.nl/bbm
+- `/bbm/` overzicht van alle BBM-tools (`_site/overzicht.html`)
+- `/bbm/bladwijzers/` installatie en uitleg van de knoppen (`_site/template.html`)
+- `/bbm/dekvloer/` en `/bbm/bonnetjes/` zijn aparte apps in Coolify
 
-Na een wijziging: `python3 _site/build.py .`, pushen en in Coolify op Redeploy (app `bbm-tools`).
+Het basispad (`/bbm`) staat op één plek: `BASE` in `_site/build.py`. Na een wijziging: `python3 _site/build.py .`, pushen en in Coolify op Redeploy (app `bbm-tools`).
+
+Achter Cloudflare Access (app "BBM tools"). `bbm.joostmaes.nl` is alleen nog een tijdelijke doorverwijzing naar `klant.joostmaes.nl/bbm`.
